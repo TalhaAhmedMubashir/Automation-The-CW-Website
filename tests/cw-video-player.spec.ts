@@ -10,7 +10,7 @@ test.describe('CW Show Tests', () => {
     let showDetailsPage: ShowDetailsPage;
     let videoplayer: VideoPlayer;
 
-    test.skip('TEST-543: CW Video Player', async ({ page }) => {
+    test('TEST-543: CW Video Player', async ({ page }) => {
         homePage = new HomePage(page);
         showDetailsPage = new ShowDetailsPage(page);
 
@@ -115,7 +115,7 @@ test.describe('CW Show Tests', () => {
 
     });
 
-    test.skip('TEST-633: CW Video Player', async ({ page }) => {
+    test('TEST-633: CW Video Player', async ({ page }) => {
         await page.goto('https://www.cwtv.com/channels/?channel=cw-forever')
         await page.waitForLoadState()
         // await page.waitForTimeout(10000)
@@ -337,7 +337,7 @@ test.describe('CW Show Tests', () => {
         }
     })
 
-    test.only("TEST-545 Sub-Test - 14 & 15  : Test forward and backword functionality.", async ({ page }) => {
+    test("TEST-545 Sub-Test - 14 & 15  : Test forward and backword functionality.", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
