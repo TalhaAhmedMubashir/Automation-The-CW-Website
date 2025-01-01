@@ -1,0 +1,4 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"failed","Thu Dec 12 13:10:06 CST 2024","Thu Dec 12 13:10:07 CST 2024","1359","webkit","show-details.spec.ts","Show Details Page Tests","","","verify show details page elements",""
+"failed","Thu Dec 12 13:10:06 CST 2024","Thu Dec 12 13:10:07 CST 2024","1224","firefox","show-details.spec.ts","Show Details Page Tests","","","verify show details page elements",""
+"failed","Thu Dec 12 13:10:27 CST 2024","Thu Dec 12 13:10:39 CST 2024","11099","chromium","show-details.spec.ts","Show Details Page Tests","","","verify show details page elements",""
