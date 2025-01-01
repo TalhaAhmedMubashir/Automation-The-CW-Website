@@ -458,6 +458,42 @@ export class VideoPlayer extends BasePage {
 
         return (isVideoWider === isContentWider) ? true : false
     }
+
+    async isForwardWorking() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+
+        let beforevalue_string = await this.playedtime?.textContent()
+        let beforevalue = Number(beforevalue_string?.split(':')[1].trim())
+
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.forwardtensecondButton.click()
+        await this.page.waitForTimeout(1000)
+
+        let aftervalue_string = await this.playedtime?.textContent()
+        let aftervalue = Number(aftervalue_string?.split(':')[1].trim())
+
+        return ((beforevalue !== aftervalue) && (aftervalue - beforevalue >= 10)) ? true : false
+    }
+
+    async isBackwordWorking() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+
+        let beforevalue_string = await this.playedtime?.textContent()
+        let beforevalue = Number(beforevalue_string?.split(':')[1].trim())
+
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.backwordtensecondButton.click()
+        await this.page.waitForTimeout(1000)
+
+        let aftervalue_string = await this.playedtime?.textContent()
+        let aftervalue = Number(aftervalue_string?.split(':')[1].trim())
+
+        return ((beforevalue !== aftervalue) && (beforevalue - aftervalue <= 11)) ? true : false
+    }
 }
 
 async function EnablePlayerButtonBar(page: Page) {

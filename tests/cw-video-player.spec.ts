@@ -336,4 +336,19 @@ test.describe('CW Show Tests', () => {
             console.log("Episode is not playing.")
         }
     })
+
+    test.only("TEST-545 Sub-Test - 14 & 15  : Test forward and backword functionality.", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
+        await page.waitForLoadState();
+        if (await videoplayer.isEpisodePlaying()) {
+            await page.waitForTimeout(3000)
+            expect.soft(await videoplayer.isForwardWorking(), "Forward functionality is not working.").toBeTruthy()
+            await page.waitForTimeout(3000)
+            expect.soft(await videoplayer.isBackwordWorking(), "Backword functionality is not working.").toBeTruthy()
+        } else {
+            console.log("Episode is not playing.")
+        }
+    })
 });
