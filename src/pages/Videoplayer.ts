@@ -14,6 +14,7 @@ export class VideoPlayer extends BasePage {
     readonly playedtime: Locator;
     readonly totalvideotime: Locator;
     readonly screenwiderButton: Locator;
+    readonly screenwider_description: Locator;
     readonly screenwiderplayer: Locator;
     readonly captionButton: Locator;
     readonly captiondropdonwButton: Locator; // it will be a list
@@ -41,7 +42,9 @@ export class VideoPlayer extends BasePage {
         this.playedtime = page.locator('//span[@class="vjs-current-time-display"]').last();
         this.totalvideotime = page.locator('//span[@class="vjs-duration-display"]').last();
         this.screenwiderplayer = page.locator('//div[@id="player_container"]')
+        this.screenwider_description = page.locator('//div[@id="details_container"]')
         this.screenwiderButton = page.locator('//*[@class="vjs-control vjs-button vjs-theatre-view"]');
+
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
         this.captiondropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
@@ -438,10 +441,22 @@ export class VideoPlayer extends BasePage {
     }
 
     async iswiderWorking() {
-        const intialwidth = await this.screenwiderplayer.getAttribute('width')
-        await this.screenwiderplayer.click()
-        const finalwidth = await this.screenwiderplayer.getAttribute('width')
-        console.log("Initial value : ", intialwidth, " After click : ", finalwidth)
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        const intialvideowidth = await this.screenwiderplayer.evaluate(el => el.getBoundingClientRect().width)
+        const initialcontentwidht = await this.screenwider_description.evaluate(el => el.getBoundingClientRect().width)
+
+        await this.screenwiderButton.click()
+
+        const finalvideowidth = await this.screenwiderplayer.evaluate(el => el.getBoundingClientRect().width)
+        const finalcontentwidht = await this.screenwider_description.evaluate(el => el.getBoundingClientRect().width)
+
+        const isVideoWider = (intialvideowidth !== finalvideowidth) ? true : false
+        const isContentWider = (initialcontentwidht !== finalcontentwidht) ? true : false
+
+        return (isVideoWider === isContentWider) ? true : false
     }
 }
 
