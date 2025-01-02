@@ -316,7 +316,7 @@ test.describe('CW Show Tests', () => {
             console.error("Player Episode is not running...")
         }
     })
-    test.only("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
+    test("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
@@ -358,7 +358,7 @@ test.describe('CW Show Tests', () => {
             console.log("Episode is not playing.")
         }
     })
-    test("TEST-545 : Test Cogwheel", async ({ page }) => {
+    test.only("TEST-545 : Test Cogwheel", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
@@ -367,6 +367,15 @@ test.describe('CW Show Tests', () => {
             if (await videoplayer.isEpisodePlaying()) {
                 await page.waitForTimeout(3000)
                 expect.soft(await videoplayer.isResolutionChangeWorking(), "Resolution change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
+
+        await test.step("Test 17 : Verify submenu appear and click the CC and verify that the user can turn the closed captions on/off", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isCCApplied(), "CC change is not working").toBeTruthy()
             } else {
                 console.log("Episode is not playing.")
             }

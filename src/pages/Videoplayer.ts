@@ -17,10 +17,9 @@ export class VideoPlayer extends BasePage {
     readonly screenwider_description: Locator;
     readonly screenwiderplayer: Locator;
     readonly captionButton: Locator;
-    readonly captiondropdonwButton: Locator; // it will be a list
     readonly settingButton: Locator;
-    readonly settingdropdonwButton: Locator; // it will be a list
-    readonly settingselecteddropdownvalue: Locator;
+    readonly cogdropdownlist: Locator; // it will be a list
+    readonly cogdropdownlistselectedvalue: Locator; // It will be list selected item
     readonly fullscreenButton: Locator;
     readonly advertisementcount: Locator;
     readonly isiframe: Locator;
@@ -54,10 +53,9 @@ export class VideoPlayer extends BasePage {
         this.shareOnFacebook = page.locator('//a[@id="share-facebook"]')
         this.shareOnPinterest = page.locator('//a[@id="share-pinterest"]')
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
-        this.captiondropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
-        this.settingdropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li/span[@class="vjs-menu-item-text"]');
-        this.settingselecteddropdownvalue = page.locator('//li[@aria-checked="true" and contains(@class, "vjs-menu-item")]')
+        this.cogdropdownlist = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li/span[@class="vjs-menu-item-text"]');
+        this.cogdropdownlistselectedvalue = page.locator('//li[@aria-checked="true" and contains(@class, "vjs-menu-item")]')
         this.fullscreenButton = page.locator('//*[@class="vjs-fullscreen-control vjs-control vjs-button"]');
         this.isiframe = page.locator("//iframe[@title='Advertisement'][1]");
         this.advertisementcount = page.locator('//span[@id="pod_count" and contains(.,"1 of 2:")]')
@@ -72,24 +70,24 @@ export class VideoPlayer extends BasePage {
         }
         await this.settingButton.click()
         await this.page.waitForTimeout(2000)
-        const cogwheeldropdownvalue = await this.getCogList(this.settingdropdonwButton);
+        const cogwheeldropdownvalue = await this.getCogList(this.cogdropdownlist);
         if (cogwheeldropdownvalue) {
             let failed = 0;
             let faileditems: string[] = []; // Explicitly define the array as a string array
 
             // Use iterate over each element
             for (let i = 0; i < cogwheeldropdownvalue.length; i++) {
-                if (await this.settingdropdonwButton.first().isVisible() !== true) {
+                if (await this.cogdropdownlist.first().isVisible() !== true) {
                     await this.settingButton.click()
                 }
-                if (await this.settingdropdonwButton.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).isVisible()) {
-                    await this.settingdropdonwButton.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).click()
+                if (await this.cogdropdownlist.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).isVisible()) {
+                    await this.cogdropdownlist.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).click()
                     await this.page.waitForTimeout(3000)
-                    if (await this.settingdropdonwButton.first().isVisible() !== true) {
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
                         await this.settingButton.click()
                     }
-                    if (await this.settingdropdonwButton.first().isVisible()) {
-                        const selectedvalue = await this.getCogwheelSelectedValue(this.settingselecteddropdownvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                    if (await this.cogdropdownlist.first().isVisible()) {
+                        const selectedvalue = await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
                         if (!selectedvalue) {
                             failed++
                             faileditems.push(cogwheeldropdownvalue[i])
@@ -97,8 +95,8 @@ export class VideoPlayer extends BasePage {
                     } else {
                         await this.settingButton.click()
                         await this.page.waitForTimeout(2000)
-                        if (await this.settingdropdonwButton.first().isVisible()) {
-                            const selectedvalue = await this.getCogwheelSelectedValue(this.settingselecteddropdownvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                        if (await this.cogdropdownlist.first().isVisible()) {
+                            const selectedvalue = await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
                             if (!selectedvalue) {
                                 failed++
                                 faileditems.push(cogwheeldropdownvalue[i])
@@ -114,14 +112,23 @@ export class VideoPlayer extends BasePage {
             }
 
             if (cogwheeldropdownvalue.length - 1 === failed) {
+                if (await this.cogdropdownlist.first().isVisible() === true) {
+                    await this.settingButton.click()
+                }
                 return false
             }
             if (failed > 0) {
                 console.log("Resolution is failed to select following items : ", faileditems)
             }
+            if (await this.cogdropdownlist.first().isVisible() === true) {
+                await this.settingButton.click()
+            }
             return true
         } else {
             console.error("Cogwheel values from setting are not visible.")
+            if (await this.cogdropdownlist.first().isVisible() === true) {
+                await this.settingButton.click()
+            }
             return false
         }
     }
@@ -143,7 +150,6 @@ export class VideoPlayer extends BasePage {
 
     async getCogwheelSelectedValue(locator: Locator) {
         if (await locator.isVisible()) {
-
             // Get all text contents of the matched elements
             const textValues = await locator.textContent();
             if (textValues) {
@@ -156,6 +162,43 @@ export class VideoPlayer extends BasePage {
             console.error("Cogwheel values are not visible to get the selected value.")
             return null
         }
+    }
+
+    async isCCApplied() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.captionButton.click()
+        await this.page.waitForTimeout(2000)
+        if (await this.cogdropdownlist.first().isVisible()) {
+            if (await this.cogdropdownlist.filter({ hasText: "CC1" }).isVisible()) {
+                await this.cogdropdownlist.filter({ hasText: "CC1" }).click()
+                if (await this.cogdropdownlist.filter({ hasText: "CC1" }).isVisible()) {
+                    if (await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: "CC1" }))) {
+                        return true
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                        await this.page.waitForTimeout(2000)
+                        await this.captionButton.click()
+                    }
+                    if (await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: "CC1" }))) {
+                        return true
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                console.error("Text 'CC1' is not visible.")
+            }
+        } else {
+            console.error("CC dropdown list is not visible.")
+        }
+        return false
     }
 
     async isAdvertisementDisplaying(adWaitTime = 15) {
