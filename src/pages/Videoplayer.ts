@@ -26,6 +26,10 @@ export class VideoPlayer extends BasePage {
     readonly isiframe: Locator;
     readonly advertismentendIn: Locator;
     readonly playbackissue: Locator;
+    readonly shareButton: Locator;
+    readonly shareOnTwitter: Locator;
+    readonly shareOnFacebook: Locator;
+    readonly shareOnPinterest: Locator;
 
 
 
@@ -45,7 +49,10 @@ export class VideoPlayer extends BasePage {
         this.screenwiderplayer = page.locator('//div[@id="player_container"]')
         this.screenwider_description = page.locator('//div[@id="details_container"]')
         this.screenwiderButton = page.locator('//*[@class="vjs-control vjs-button vjs-theatre-view"]');
-
+        this.shareButton = page.locator('//span[@id="sharebtn"]')
+        this.shareOnTwitter = page.locator('//a[@id="share-twitter"]')
+        this.shareOnFacebook = page.locator('//a[@id="share-facebook"]')
+        this.shareOnPinterest = page.locator('//a[@id="share-pinterest"]')
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
         this.captiondropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
@@ -520,6 +527,59 @@ export class VideoPlayer extends BasePage {
         await this.page.mouse.down();              // Press the mouse button
         await this.page.mouse.move(startX, endY);  // Drag the slider
         await this.page.mouse.up();                // Release the mouse button
+    }
+
+    async isVideoShareWorking(platform: string) {
+        try {
+            if (await this.playvideo() !== true) {
+                await EnablePlayerButtonBar(this.page)
+            }
+            await this.shareButton.click()
+            if (platform.includes("Twitter")) {
+                if (await this.shareOnTwitter.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnTwitter.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState()
+                await newPage.close()
+            }
+            if (platform.includes("Facebook")) {
+                if (await this.shareOnFacebook.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnFacebook.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState()
+                await newPage.close()
+            }
+            if (platform.includes("Pinterest")) {
+                if (await this.shareOnPinterest.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnPinterest.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState()
+                await newPage.close()
+            }
+        } catch (e) {
+            return false
+        }
     }
 
     async clickOnLinkAndMathchUrl(locator: Locator = this.playbackissue, matchurlstring: string = "support.cwtv.com") {
