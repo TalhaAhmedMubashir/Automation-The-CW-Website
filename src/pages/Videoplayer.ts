@@ -167,6 +167,57 @@ export class VideoPlayer extends BasePage {
             return null
         }
     }
+    async isSpacingWorkOnPlayingVideo() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.playedtime.click()
+
+        await this.page.waitForTimeout(2000)
+        const initialstate = await this.playButton.isVisible()
+        await this.page.waitForTimeout(2000)
+        await this.page.keyboard.press('Space')
+        await this.page.waitForTimeout(2000)
+        const finalstate = await this.playButton.isVisible()
+
+        if (initialstate !== finalstate) {
+            return true
+        }
+        return false;
+    }
+    async isEnterWorkOnPlayingVideo(focused: boolean = false) {
+        let initialstate = false, finalstate = false;
+
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+
+        if (focused) {
+            await this.settingButton.click()
+            await this.page.waitForTimeout(2000)
+            await this.settingButton.click()
+
+            initialstate = await this.cogdropdownlist.first().isVisible()
+            await this.page.waitForTimeout(2000)
+            await this.page.keyboard.press('Enter')
+            await this.page.waitForTimeout(2000)
+            finalstate = await this.cogdropdownlist.first().isVisible()
+        } else {
+            await this.page.waitForTimeout(2000)
+            initialstate = await this.playButton.isVisible()
+            await this.page.waitForTimeout(2000)
+            await this.page.keyboard.press('Enter')
+            await this.page.waitForTimeout(2000)
+            finalstate = await this.playButton.isVisible()
+        }
+
+        if (initialstate !== finalstate) {
+            return true
+        }
+        return false;
+    }
 
     async isCCApplied() {
         await this.page.waitForSelector("//iframe[@title='Advertisement']");

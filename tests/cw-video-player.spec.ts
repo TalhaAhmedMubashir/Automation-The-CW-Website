@@ -3,17 +3,15 @@ import { HomePage } from '../src/pages/HomePage';
 import { ShowDetailsPage } from '../src/pages/ShowDetailsPage';
 import { VideoPlayer } from '../src/pages/Videoplayer';
 
-
+let videoplayer: VideoPlayer;
+let homePage: HomePage;
+let showDetailsPage: ShowDetailsPage;
 
 test.describe('CW Show Tests', () => {
-    let homePage: HomePage;
-    let showDetailsPage: ShowDetailsPage;
-    let videoplayer: VideoPlayer;
-
     test('TEST-543: CW Video Player', async ({ page }) => {
         homePage = new HomePage(page);
         showDetailsPage = new ShowDetailsPage(page);
-
+        videoplayer = new VideoPlayer(page);
 
         // Step 1: Navigate to the homepage and handle the banner
         await test.step('Navigate to the homepage and handle the banner', async () => {
@@ -196,12 +194,19 @@ test.describe('CW Show Tests', () => {
             console.log("Element is not visible.");
         }
     })
+});
+
+test.describe("TEST-545", () => {
+
+    test.beforeEach(async ({ page }) => {
+        videoplayer = new VideoPlayer(page);
+        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
+        await page.waitForLoadState();
+    })
 
     test('TEST-545 : CW Video Player Functionalities', async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
-        await page.waitForLoadState();
 
         await test.step("Test - 3 A :  CW Logo is visible", async () => {
             expect.soft(await videoplayer.isCWSplash()).toBeTruthy()
@@ -244,8 +249,6 @@ test.describe('CW Show Tests', () => {
     })
     test("TEST-545 Sub-Test - 5 : Controls are visible during video", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
         await page.waitForLoadState();
 
         if (await videoplayer.isEpisodePlaying()) {
@@ -280,9 +283,7 @@ test.describe('CW Show Tests', () => {
 
     test("TEST-545 Sub-Test - 6 : Test play and pause video.", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
+
         if (await videoplayer.isEpisodePlaying()) {
             const playbuttonstatus = await videoplayer.isPlayButtonWorks()
 
@@ -306,9 +307,6 @@ test.describe('CW Show Tests', () => {
 
     test("TEST-545 Sub-Test - 7 : Test volume.", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
 
         if (await videoplayer.isEpisodePlaying()) {
             expect(await videoplayer.isVolumeWorking(), "Player Volume is not working.").toBeTruthy()
@@ -318,10 +316,6 @@ test.describe('CW Show Tests', () => {
     })
     test("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
-
         expect.soft(await videoplayer.clickOnLinkAndMathchUrl(), "playback issue link is not working.").toBeTruthy()
         if (await videoplayer.isEpisodePlaying()) {
             expect.soft(await videoplayer.isVideoShareWorking('Twitter'), "Twitter link is not working.").toBeTruthy()
@@ -334,9 +328,6 @@ test.describe('CW Show Tests', () => {
 
     test("TEST-545 Sub-Test - 13 : Test wide screen functionality.", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
         if (await videoplayer.isEpisodePlaying()) {
             expect(await videoplayer.iswiderWorking(), "Wide screen functionality is not working.").toBeTruthy()
         } else {
@@ -346,9 +337,6 @@ test.describe('CW Show Tests', () => {
 
     test("TEST-545 Sub-Test - 14 & 15  : Test forward and backword functionality.", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
         if (await videoplayer.isEpisodePlaying()) {
             await page.waitForTimeout(3000)
             expect.soft(await videoplayer.isForwardWorking(), "Forward functionality is not working.").toBeTruthy()
@@ -360,9 +348,6 @@ test.describe('CW Show Tests', () => {
     })
     test("TEST-545 : Test Cogwheel", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
-        await page.waitForLoadState();
         await test.step("Test 16 : Verify submenu appear and allow user to change resolution", async () => {
             if (await videoplayer.isEpisodePlaying()) {
                 await page.waitForTimeout(3000)
@@ -384,9 +369,6 @@ test.describe('CW Show Tests', () => {
 
     test("TEST-545 Sub-Test 18 : verify that you are able to change how big and visible the closed captions will be", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
-        await page.waitForLoadState();
         if (await videoplayer.isEpisodePlaying()) {
             await page.waitForTimeout(3000)
             expect(await videoplayer.isCCTextSizeChange(), "CC text size change is not working").toBeTruthy()
@@ -394,12 +376,19 @@ test.describe('CW Show Tests', () => {
             console.log("Episode is not playing.")
         }
     })
+})
+
+
+test.describe("TEST-546", () => {
+    test.beforeEach(async ({ page }) => {
+        videoplayer = new VideoPlayer(page);
+        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
+        await page.waitForLoadState();
+    })
 
     test("TEST-546 : Key Board ShortCuts", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
-        await page.waitForLoadState();
+
         await test.step("Test - 2 :  CW Logo is visible", async () => {
             expect.soft(await videoplayer.isCWSplash()).toBeTruthy()
         })
@@ -433,7 +422,7 @@ test.describe('CW Show Tests', () => {
                 console.log("Avertisement is not running..")
             }
         })
-        await test.step("Test - 4 : While the Video is playing, tap the Esc key", async () => {
+        await test.step("Test - 5 : While the Video is playing, tap the Esc key", async () => {
             if (await videoplayer.isEpisodePlaying()) {
                 await page.waitForTimeout(3000)
                 expect.soft(await videoplayer.isESCWorkOnSettingMenu(), "ESC button on setting is not working.").toBeTruthy()
@@ -441,12 +430,37 @@ test.describe('CW Show Tests', () => {
                 console.log("Episode is not playing.")
             }
         })
+        await test.step("Test - 6 : While the Video is playing, tap the space key", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isSpacingWorkOnPlayingVideo(), "Space button is not working.").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
+        await test.step("Test - 7 A: While the Video is playing, tap the enter key, when setting is focused.", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isEnterWorkOnPlayingVideo(true), "Enter button is not working, when setting is focused.").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
     })
+
+    test("EST-546 Sub-Test - 7 B: While the Video is playing, tap the enter key, when nothing is focused.", async ({ page }) => {
+        test.slow()
+
+        if (await videoplayer.isEpisodePlaying()) {
+            await page.waitForTimeout(3000)
+            expect.soft(await videoplayer.isEnterWorkOnPlayingVideo(), "Enter button is not working, when nothing is focused.").toBeTruthy()
+        } else {
+            console.log("Episode is not playing.")
+        }
+    })
+
     test("TEST-546 Sub-Test - 4 : Controls are visible during video", async ({ page }) => {
         test.slow()
-        videoplayer = new VideoPlayer(page)
-        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
-        await page.waitForLoadState();
 
         if (await videoplayer.isEpisodePlaying()) {
 
@@ -477,4 +491,4 @@ test.describe('CW Show Tests', () => {
             console.error("Player Episode is not running...")
         }
     })
-});
+})
