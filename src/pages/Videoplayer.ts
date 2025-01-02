@@ -205,7 +205,21 @@ export class VideoPlayer extends BasePage {
         return false
     }
 
-    async isCCTextSizeChange() {
+    async isESCWorkOnSettingMenu() {
+        if (await this.isCCTextSettingVisible()) {
+            await this.page.keyboard.press("Escape")
+            if (await this.cc_size_dropdown.isVisible()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            console.log("Setting is not visible.")
+            return false
+        }
+    }
+
+    async isCCTextSettingVisible() {
         await this.page.waitForSelector("//iframe[@title='Advertisement']");
         if (await this.playvideo() !== true) {
             await EnablePlayerButtonBar(this.page)
@@ -216,38 +230,47 @@ export class VideoPlayer extends BasePage {
             if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
                 await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
                 if (await this.cc_size_dropdown.isVisible()) {
-                    const result = await this.SelectType_DropDownItemByText(this.cc_size_dropdown, "150%")
-                    if (result) {
-                        await this.save_cc_setting.click()
-                        if (await this.playvideo() !== true) {
-                            await EnablePlayerButtonBar(this.page)
-                        }
-                        await this.captionButton.click()
-                        if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
-                            await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
-                            if (await this.cc_size_dropdown.isVisible()) {
-                                return await this.cc_size_dropdown.filter({ hasText: "150%" }).isVisible()
-                            } else {
-                                return false;
-                            }
-                        } else {
-                            return false
-                        }
-                    } else {
-                        return false;
-                    }
+                    return true;
                 } else {
-                    if (await this.cogdropdownlist.first().isVisible() !== true) {
-                        await EnablePlayerButtonBar(this.page)
-                        await this.page.waitForTimeout(2000)
-                        await this.captionButton.click()
-                    }
+                    return false;
                 }
             } else {
                 console.error("Text 'captions settings' is not visible.")
             }
         } else {
             console.error("CC dropdown list is not visible.")
+        }
+
+    }
+
+    async isCCTextSizeChange() {
+        if (await this.isCCTextSettingVisible()) {
+            const result = await this.SelectType_DropDownItemByText(this.cc_size_dropdown, "150%")
+            if (result) {
+                await this.save_cc_setting.click()
+                if (await this.playvideo() !== true) {
+                    await EnablePlayerButtonBar(this.page)
+                }
+                await this.captionButton.click()
+                if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
+                    await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
+                    if (await this.cc_size_dropdown.isVisible()) {
+                        return await this.cc_size_dropdown.filter({ hasText: "150%" }).isVisible()
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false
+                }
+            } else {
+                return false;
+            }
+        } else {
+            if (await this.cogdropdownlist.first().isVisible() !== true) {
+                await EnablePlayerButtonBar(this.page)
+                await this.page.waitForTimeout(2000)
+                await this.captionButton.click()
+            }
         }
         return false
     }

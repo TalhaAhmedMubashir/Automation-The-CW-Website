@@ -380,14 +380,101 @@ test.describe('CW Show Tests', () => {
                 console.log("Episode is not playing.")
             }
         })
+    })
 
-        await test.step("Test 18 : verify that you are able to change how big and visible the closed captions will be", async () => {
+    test("TEST-545 Sub-Test 18 : verify that you are able to change how big and visible the closed captions will be", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
+        await page.waitForLoadState();
+        if (await videoplayer.isEpisodePlaying()) {
+            await page.waitForTimeout(3000)
+            expect(await videoplayer.isCCTextSizeChange(), "CC text size change is not working").toBeTruthy()
+        } else {
+            console.log("Episode is not playing.")
+        }
+    })
+
+    test("TEST-546 : Key Board ShortCuts", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
+        await page.waitForLoadState();
+        await test.step("Test - 2 :  CW Logo is visible", async () => {
+            expect.soft(await videoplayer.isCWSplash()).toBeTruthy()
+        })
+        await test.step("Test - 3 :  Controls are visible during pre-roll", async () => {
+
+            if (await videoplayer.isAdvertisementDisplaying()) {
+                const playbuttonstatus = await videoplayer.isPlayButtonWorks()
+
+                if (playbuttonstatus?.includes("Both")) {
+                    expect.soft(true).toBeTruthy()
+                } else {
+                    if (playbuttonstatus?.includes("Play")) {
+                        expect.soft(true).toBeTruthy()
+                        expect.soft(false, "Pause Button not visible.").toBeTruthy()
+                    }
+                    if (playbuttonstatus?.includes("Pause")) {
+                        expect.soft(true).toBeTruthy()
+                        expect.soft(false, "Play Button not visible.").toBeTruthy()
+                    }
+                    if (playbuttonstatus?.includes("None")) {
+                        expect.soft(false, "Play and Pause Button not visible.").toBeTruthy()
+                    }
+                }
+
+                expect.soft(await videoplayer.isMuteVisible(), "Mute not visible.").toBeTruthy()
+                expect.soft(await videoplayer.isUnMuteVisible(), "Unmute not visible.").toBeTruthy()
+                expect.soft(await videoplayer.isAdCountVisible(), "Ad Count not visible.").toBeTruthy()
+                expect.soft(await videoplayer.isAdEndWithVisible(), "This ad will end in text is not visible.").toBeTruthy()
+                expect.soft(await videoplayer.isFullScreenVisible(), "Full screen is not visible.").toBeTruthy()
+            } else {
+                console.log("Avertisement is not running..")
+            }
+        })
+        await test.step("Test - 4 : While the Video is playing, tap the Esc key", async () => {
             if (await videoplayer.isEpisodePlaying()) {
                 await page.waitForTimeout(3000)
-                expect.soft(await videoplayer.isCCTextSizeChange(), "CC text size change is not working").toBeTruthy()
+                expect.soft(await videoplayer.isESCWorkOnSettingMenu(), "ESC button on setting is not working.").toBeTruthy()
             } else {
                 console.log("Episode is not playing.")
             }
         })
+    })
+    test("TEST-546 Sub-Test - 4 : Controls are visible during video", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/shows/bloody-bites/?viewContext=Series+Swimlane')
+        await page.waitForLoadState();
+
+        if (await videoplayer.isEpisodePlaying()) {
+
+            const playbuttonstatus = await videoplayer.isPlayButtonWorks()
+
+            if (playbuttonstatus?.includes("Both")) {
+                expect.soft(true).toBeTruthy()
+            } else {
+                if (playbuttonstatus?.includes("Play")) {
+                    expect.soft(false, "Pause Button not visible.").toBeTruthy()
+                }
+                if (playbuttonstatus?.includes("Pause")) {
+                    expect.soft(false, "Play Button not visible.").toBeTruthy()
+                }
+                if (playbuttonstatus?.includes("None")) {
+                    expect.soft(false, "Play and Pause Button not visible.").toBeTruthy()
+                }
+            }
+            expect.soft(await videoplayer.isMuteVisible(), "Mute not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isForwardVisible(), "Fast Forward not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isRewindVisible(), "Rewind not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isForwardVisible(), "Fast Forward not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isDurationVisible(), "Episode Duration not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isSettingVisible(), "Setting not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isWideScreenVisibe(), "WideScreen not visible.").toBeTruthy()
+            expect.soft(await videoplayer.isFullScreenVisible(), "Full screen is not visible.").toBeTruthy()
+        } else {
+            console.error("Player Episode is not running...")
+        }
     })
 });
