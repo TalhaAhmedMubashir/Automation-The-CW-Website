@@ -49,7 +49,7 @@ export class VideoPlayer extends BasePage {
         this.screenwiderplayer = page.locator('//div[@id="player_container"]')
         this.screenwider_description = page.locator('//div[@id="details_container"]')
         this.screenwiderButton = page.locator('//*[@class="vjs-control vjs-button vjs-theatre-view"]');
-        this.shareButton = page.locator('//span[@id="sharebtn"]')
+        this.shareButton = page.locator('//div[@class="icon billboard"]')
         this.shareOnTwitter = page.locator('//a[@id="share-twitter"]')
         this.shareOnFacebook = page.locator('//a[@id="share-facebook"]')
         this.shareOnPinterest = page.locator('//a[@id="share-pinterest"]')
@@ -574,9 +574,10 @@ export class VideoPlayer extends BasePage {
                     this.page.waitForEvent('popup'), // Wait for the new window to open
                     this.shareOnPinterest.click() // Replace with your link selector
                 ]);
-                await newPage.waitForLoadState()
+                await newPage.waitForLoadState('networkidle')
                 await newPage.close()
             }
+            return true
         } catch (e) {
             return false
         }

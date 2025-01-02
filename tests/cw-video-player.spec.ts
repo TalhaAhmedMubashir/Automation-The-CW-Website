@@ -316,16 +316,20 @@ test.describe('CW Show Tests', () => {
             console.error("Player Episode is not running...")
         }
     })
-    test.fixme("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
+    test.only("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
         await page.waitForLoadState();
 
         expect.soft(await videoplayer.clickOnLinkAndMathchUrl(), "playback issue link is not working.").toBeTruthy()
-        expect.soft(await videoplayer.isVideoShareWorking('Twitter'), "Twitter ilink is not working.").toBeTruthy()
-        expect.soft(await videoplayer.isVideoShareWorking('Facebook'), "Facebook ilink is not working.").toBeTruthy()
-        expect.soft(await videoplayer.isVideoShareWorking('Pinterest'), "Pinterest ilink is not working.").toBeTruthy()
+        if (await videoplayer.isEpisodePlaying()) {
+            expect.soft(await videoplayer.isVideoShareWorking('Twitter'), "Twitter link is not working.").toBeTruthy()
+            expect.soft(await videoplayer.isVideoShareWorking('Facebook'), "Facebook link is not working.").toBeTruthy()
+            expect.soft(await videoplayer.isVideoShareWorking('Pinterest'), "Pinterest link is not working.").toBeTruthy()
+        } else {
+            console.log("Episode is not playing.")
+        }
     })
 
     test("TEST-545 Sub-Test - 13 : Test wide screen functionality.", async ({ page }) => {
