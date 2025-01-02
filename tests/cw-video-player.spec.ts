@@ -351,4 +351,18 @@ test.describe('CW Show Tests', () => {
             console.log("Episode is not playing.")
         }
     })
+    test("TEST-545 : Test Cogwheel", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
+        await page.waitForLoadState();
+        await test.step("Test 16 : Verify submenu appear and allow user to change resolution", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isResolutionChangeWorking(), "Resolution change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
+    })
 });

@@ -20,6 +20,7 @@ export class VideoPlayer extends BasePage {
     readonly captiondropdonwButton: Locator; // it will be a list
     readonly settingButton: Locator;
     readonly settingdropdonwButton: Locator; // it will be a list
+    readonly settingselecteddropdownvalue: Locator;
     readonly fullscreenButton: Locator;
     readonly advertisementcount: Locator;
     readonly isiframe: Locator;
@@ -48,13 +49,106 @@ export class VideoPlayer extends BasePage {
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
         this.captiondropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
-        this.settingdropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
+        this.settingdropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li/span[@class="vjs-menu-item-text"]');
+        this.settingselecteddropdownvalue = page.locator('//li[@aria-checked="true" and contains(@class, "vjs-menu-item")]')
         this.fullscreenButton = page.locator('//*[@class="vjs-fullscreen-control vjs-control vjs-button"]');
         this.isiframe = page.locator("//iframe[@title='Advertisement'][1]");
         this.advertisementcount = page.locator('//span[@id="pod_count" and contains(.,"1 of 2:")]')
         this.advertismentendIn = page.locator('//p[@id="adOverlay" and contains(.," This ad will end in ")]')
         this.playbackissue = page.locator('//div[@id="videohelp"]')
 
+    }
+    async isResolutionChangeWorking() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.settingButton.click()
+        await this.page.waitForTimeout(2000)
+        const cogwheeldropdownvalue = await this.getCogList(this.settingdropdonwButton);
+        if (cogwheeldropdownvalue) {
+            let failed = 0;
+            let faileditems: string[] = []; // Explicitly define the array as a string array
+
+            // Use iterate over each element
+            for (let i = 0; i < cogwheeldropdownvalue.length; i++) {
+                if (await this.settingdropdonwButton.first().isVisible() !== true) {
+                    await this.settingButton.click()
+                }
+                if (await this.settingdropdonwButton.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).isVisible()) {
+                    await this.settingdropdonwButton.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).click()
+                    await this.page.waitForTimeout(3000)
+                    if (await this.settingdropdonwButton.first().isVisible() !== true) {
+                        await this.settingButton.click()
+                    }
+                    if (await this.settingdropdonwButton.first().isVisible()) {
+                        const selectedvalue = await this.getCogwheelSelectedValue(this.settingselecteddropdownvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                        if (!selectedvalue) {
+                            failed++
+                            faileditems.push(cogwheeldropdownvalue[i])
+                        }
+                    } else {
+                        await this.settingButton.click()
+                        await this.page.waitForTimeout(2000)
+                        if (await this.settingdropdonwButton.first().isVisible()) {
+                            const selectedvalue = await this.getCogwheelSelectedValue(this.settingselecteddropdownvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                            if (!selectedvalue) {
+                                failed++
+                                faileditems.push(cogwheeldropdownvalue[i])
+                            }
+                        } else {
+                            console.log("Cogwheel dropdown values are not visible to get the selected value.")
+                        }
+                    }
+                } else {
+                    failed++
+                    faileditems.push(cogwheeldropdownvalue[i])
+                }
+            }
+
+            if (cogwheeldropdownvalue.length - 1 === failed) {
+                return false
+            }
+            if (failed > 0) {
+                console.log("Resolution is failed to select following items : ", faileditems)
+            }
+            return true
+        } else {
+            console.error("Cogwheel values from setting are not visible.")
+            return false
+        }
+    }
+    async getCogList(locator: Locator) {
+        if (await locator.first().isVisible()) {
+            // Get all text contents of the matched elements
+            const textValues = await locator.allTextContents();
+            if (textValues) {
+                return textValues;
+            } else {
+                console.error("Cogwheel list is empty.")
+                return null
+            }
+        } else {
+            console.error("Cogwheel values are not visible to get the list.")
+            return null
+        }
+    }
+
+    async getCogwheelSelectedValue(locator: Locator) {
+        if (await locator.isVisible()) {
+
+            // Get all text contents of the matched elements
+            const textValues = await locator.textContent();
+            if (textValues) {
+                return textValues;
+            } else {
+                console.error("Cogwheel list is empty.")
+                return null
+            }
+        } else {
+            console.error("Cogwheel values are not visible to get the selected value.")
+            return null
+        }
     }
 
     async isAdvertisementDisplaying(adWaitTime = 15) {
