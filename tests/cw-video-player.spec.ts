@@ -380,5 +380,14 @@ test.describe('CW Show Tests', () => {
                 console.log("Episode is not playing.")
             }
         })
+
+        await test.step("Test 18 : verify that you are able to change how big and visible the closed captions will be", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isCCTextSizeChange(), "CC text size change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
     })
 });

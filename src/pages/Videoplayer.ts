@@ -20,6 +20,8 @@ export class VideoPlayer extends BasePage {
     readonly settingButton: Locator;
     readonly cogdropdownlist: Locator; // it will be a list
     readonly cogdropdownlistselectedvalue: Locator; // It will be list selected item
+    readonly cc_size_dropdown: Locator;
+    readonly save_cc_setting: Locator;
     readonly fullscreenButton: Locator;
     readonly advertisementcount: Locator;
     readonly isiframe: Locator;
@@ -53,6 +55,8 @@ export class VideoPlayer extends BasePage {
         this.shareOnFacebook = page.locator('//a[@id="share-facebook"]')
         this.shareOnPinterest = page.locator('//a[@id="share-pinterest"]')
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
+        this.cc_size_dropdown = page.locator('//select[@id="vjs_select_652"]')
+        this.save_cc_setting = page.locator('//*[@class="vjs-done-button"]')
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
         this.cogdropdownlist = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li/span[@class="vjs-menu-item-text"]');
         this.cogdropdownlistselectedvalue = page.locator('//li[@aria-checked="true" and contains(@class, "vjs-menu-item")]')
@@ -201,6 +205,52 @@ export class VideoPlayer extends BasePage {
         return false
     }
 
+    async isCCTextSizeChange() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.captionButton.click()
+        await this.page.waitForTimeout(2000)
+        if (await this.cogdropdownlist.first().isVisible()) {
+            if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
+                await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
+                if (await this.cc_size_dropdown.isVisible()) {
+                    const result = await this.SelectType_DropDownItemByText(this.cc_size_dropdown, "150%")
+                    if (result) {
+                        await this.save_cc_setting.click()
+                        if (await this.playvideo() !== true) {
+                            await EnablePlayerButtonBar(this.page)
+                        }
+                        await this.captionButton.click()
+                        if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
+                            await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
+                            if (await this.cc_size_dropdown.isVisible()) {
+                                return await this.cc_size_dropdown.filter({ hasText: "150%" }).isVisible()
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            return false
+                        }
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                        await this.page.waitForTimeout(2000)
+                        await this.captionButton.click()
+                    }
+                }
+            } else {
+                console.error("Text 'captions settings' is not visible.")
+            }
+        } else {
+            console.error("CC dropdown list is not visible.")
+        }
+        return false
+    }
     async isAdvertisementDisplaying(adWaitTime = 15) {
         await this.page.waitForLoadState()
         await this.page.waitForSelector("//iframe[@title='Advertisement']");
@@ -691,6 +741,16 @@ export class VideoPlayer extends BasePage {
         let aftervalue = Number(aftervalue_string?.split(':')[1].trim())
 
         return ((beforevalue !== aftervalue) && (beforevalue - aftervalue <= 11)) ? true : false
+    }
+    async SelectType_DropDownItemByText(locator: Locator, dropdownvalue: string) {
+        await this.page.waitForLoadState();
+        let value = await locator.selectOption(dropdownvalue);
+        if (value) {
+            return true;
+        } else {
+            console.error(`Select Drop down ${dropdownvalue} does not find.`);
+            return false;
+        }
     }
 }
 
