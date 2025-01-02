@@ -17,14 +17,20 @@ export class VideoPlayer extends BasePage {
     readonly screenwider_description: Locator;
     readonly screenwiderplayer: Locator;
     readonly captionButton: Locator;
-    readonly captiondropdonwButton: Locator; // it will be a list
     readonly settingButton: Locator;
-    readonly settingdropdonwButton: Locator; // it will be a list
+    readonly cogdropdownlist: Locator; // it will be a list
+    readonly cogdropdownlistselectedvalue: Locator; // It will be list selected item
+    readonly cc_size_dropdown: Locator;
+    readonly save_cc_setting: Locator;
     readonly fullscreenButton: Locator;
     readonly advertisementcount: Locator;
     readonly isiframe: Locator;
     readonly advertismentendIn: Locator;
     readonly playbackissue: Locator;
+    readonly shareButton: Locator;
+    readonly shareOnTwitter: Locator;
+    readonly shareOnFacebook: Locator;
+    readonly shareOnPinterest: Locator;
 
 
 
@@ -44,11 +50,16 @@ export class VideoPlayer extends BasePage {
         this.screenwiderplayer = page.locator('//div[@id="player_container"]')
         this.screenwider_description = page.locator('//div[@id="details_container"]')
         this.screenwiderButton = page.locator('//*[@class="vjs-control vjs-button vjs-theatre-view"]');
-
+        this.shareButton = page.locator('//div[@class="icon billboard"]')
+        this.shareOnTwitter = page.locator('//a[@id="share-twitter"]')
+        this.shareOnFacebook = page.locator('//a[@id="share-facebook"]')
+        this.shareOnPinterest = page.locator('//a[@id="share-pinterest"]')
         this.captionButton = page.locator('//*[@class="vjs-subs-caps-button vjs-menu-button vjs-menu-button-popup vjs-control vjs-button"]');
-        this.captiondropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
+        this.cc_size_dropdown = page.locator('//select[@id="vjs_select_652"]')
+        this.save_cc_setting = page.locator('//*[@class="vjs-done-button"]')
         this.settingButton = page.locator('//*[@class="vjs-quality-menu-button vjs-menu-button vjs-menu-button-popup vjs-button"]');
-        this.settingdropdonwButton = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li');
+        this.cogdropdownlist = page.locator('//div[@class="vjs-menu vjs-lock-showing"]/ul/li/span[@class="vjs-menu-item-text"]');
+        this.cogdropdownlistselectedvalue = page.locator('//li[@aria-checked="true" and contains(@class, "vjs-menu-item")]')
         this.fullscreenButton = page.locator('//*[@class="vjs-fullscreen-control vjs-control vjs-button"]');
         this.isiframe = page.locator("//iframe[@title='Advertisement'][1]");
         this.advertisementcount = page.locator('//span[@id="pod_count" and contains(.,"1 of 2:")]')
@@ -56,7 +67,190 @@ export class VideoPlayer extends BasePage {
         this.playbackissue = page.locator('//div[@id="videohelp"]')
 
     }
+    async isResolutionChangeWorking() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.settingButton.click()
+        await this.page.waitForTimeout(2000)
+        const cogwheeldropdownvalue = await this.getCogList(this.cogdropdownlist);
+        if (cogwheeldropdownvalue) {
+            let failed = 0;
+            let faileditems: string[] = []; // Explicitly define the array as a string array
 
+            // Use iterate over each element
+            for (let i = 0; i < cogwheeldropdownvalue.length; i++) {
+                if (await this.cogdropdownlist.first().isVisible() !== true) {
+                    await this.settingButton.click()
+                }
+                if (await this.cogdropdownlist.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).isVisible()) {
+                    await this.cogdropdownlist.filter({ hasText: `${cogwheeldropdownvalue[i]}` }).click()
+                    await this.page.waitForTimeout(3000)
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
+                        await this.settingButton.click()
+                    }
+                    if (await this.cogdropdownlist.first().isVisible()) {
+                        const selectedvalue = await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                        if (!selectedvalue) {
+                            failed++
+                            faileditems.push(cogwheeldropdownvalue[i])
+                        }
+                    } else {
+                        await this.settingButton.click()
+                        await this.page.waitForTimeout(2000)
+                        if (await this.cogdropdownlist.first().isVisible()) {
+                            const selectedvalue = await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: `${cogwheeldropdownvalue[i]}` }));
+                            if (!selectedvalue) {
+                                failed++
+                                faileditems.push(cogwheeldropdownvalue[i])
+                            }
+                        } else {
+                            console.log("Cogwheel dropdown values are not visible to get the selected value.")
+                        }
+                    }
+                } else {
+                    failed++
+                    faileditems.push(cogwheeldropdownvalue[i])
+                }
+            }
+
+            if (cogwheeldropdownvalue.length - 1 === failed) {
+                if (await this.cogdropdownlist.first().isVisible() === true) {
+                    await this.settingButton.click()
+                }
+                return false
+            }
+            if (failed > 0) {
+                console.log("Resolution is failed to select following items : ", faileditems)
+            }
+            if (await this.cogdropdownlist.first().isVisible() === true) {
+                await this.settingButton.click()
+            }
+            return true
+        } else {
+            console.error("Cogwheel values from setting are not visible.")
+            if (await this.cogdropdownlist.first().isVisible() === true) {
+                await this.settingButton.click()
+            }
+            return false
+        }
+    }
+    async getCogList(locator: Locator) {
+        if (await locator.first().isVisible()) {
+            // Get all text contents of the matched elements
+            const textValues = await locator.allTextContents();
+            if (textValues) {
+                return textValues;
+            } else {
+                console.error("Cogwheel list is empty.")
+                return null
+            }
+        } else {
+            console.error("Cogwheel values are not visible to get the list.")
+            return null
+        }
+    }
+
+    async getCogwheelSelectedValue(locator: Locator) {
+        if (await locator.isVisible()) {
+            // Get all text contents of the matched elements
+            const textValues = await locator.textContent();
+            if (textValues) {
+                return textValues;
+            } else {
+                console.error("Cogwheel list is empty.")
+                return null
+            }
+        } else {
+            console.error("Cogwheel values are not visible to get the selected value.")
+            return null
+        }
+    }
+
+    async isCCApplied() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.captionButton.click()
+        await this.page.waitForTimeout(2000)
+        if (await this.cogdropdownlist.first().isVisible()) {
+            if (await this.cogdropdownlist.filter({ hasText: "CC1" }).isVisible()) {
+                await this.cogdropdownlist.filter({ hasText: "CC1" }).click()
+                if (await this.cogdropdownlist.filter({ hasText: "CC1" }).isVisible()) {
+                    if (await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: "CC1" }))) {
+                        return true
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                        await this.page.waitForTimeout(2000)
+                        await this.captionButton.click()
+                    }
+                    if (await this.getCogwheelSelectedValue(this.cogdropdownlistselectedvalue.filter({ hasText: "CC1" }))) {
+                        return true
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                console.error("Text 'CC1' is not visible.")
+            }
+        } else {
+            console.error("CC dropdown list is not visible.")
+        }
+        return false
+    }
+
+    async isCCTextSizeChange() {
+        await this.page.waitForSelector("//iframe[@title='Advertisement']");
+        if (await this.playvideo() !== true) {
+            await EnablePlayerButtonBar(this.page)
+        }
+        await this.captionButton.click()
+        await this.page.waitForTimeout(2000)
+        if (await this.cogdropdownlist.first().isVisible()) {
+            if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
+                await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
+                if (await this.cc_size_dropdown.isVisible()) {
+                    const result = await this.SelectType_DropDownItemByText(this.cc_size_dropdown, "150%")
+                    if (result) {
+                        await this.save_cc_setting.click()
+                        if (await this.playvideo() !== true) {
+                            await EnablePlayerButtonBar(this.page)
+                        }
+                        await this.captionButton.click()
+                        if (await this.cogdropdownlist.filter({ hasText: "captions settings" }).isVisible()) {
+                            await this.cogdropdownlist.filter({ hasText: "captions settings" }).click()
+                            if (await this.cc_size_dropdown.isVisible()) {
+                                return await this.cc_size_dropdown.filter({ hasText: "150%" }).isVisible()
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            return false
+                        }
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (await this.cogdropdownlist.first().isVisible() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                        await this.page.waitForTimeout(2000)
+                        await this.captionButton.click()
+                    }
+                }
+            } else {
+                console.error("Text 'captions settings' is not visible.")
+            }
+        } else {
+            console.error("CC dropdown list is not visible.")
+        }
+        return false
+    }
     async isAdvertisementDisplaying(adWaitTime = 15) {
         await this.page.waitForLoadState()
         await this.page.waitForSelector("//iframe[@title='Advertisement']");
@@ -428,6 +622,60 @@ export class VideoPlayer extends BasePage {
         await this.page.mouse.up();                // Release the mouse button
     }
 
+    async isVideoShareWorking(platform: string) {
+        try {
+            if (await this.playvideo() !== true) {
+                await EnablePlayerButtonBar(this.page)
+            }
+            await this.shareButton.click()
+            if (platform.includes("Twitter")) {
+                if (await this.shareOnTwitter.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnTwitter.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState()
+                await newPage.close()
+            }
+            if (platform.includes("Facebook")) {
+                if (await this.shareOnFacebook.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnFacebook.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState()
+                await newPage.close()
+            }
+            if (platform.includes("Pinterest")) {
+                if (await this.shareOnPinterest.isVisible()) {
+                    if (await this.playvideo() !== true) {
+                        await EnablePlayerButtonBar(this.page)
+                    }
+                    await this.shareButton.click()
+                }
+                const [newPage] = await Promise.all([
+                    this.page.waitForEvent('popup'), // Wait for the new window to open
+                    this.shareOnPinterest.click() // Replace with your link selector
+                ]);
+                await newPage.waitForLoadState('networkidle')
+                await newPage.close()
+            }
+            return true
+        } catch (e) {
+            return false
+        }
+    }
+
     async clickOnLinkAndMathchUrl(locator: Locator = this.playbackissue, matchurlstring: string = "support.cwtv.com") {
         // Click the link that opens in a new window
         const [newPage] = await Promise.all([
@@ -493,6 +741,16 @@ export class VideoPlayer extends BasePage {
         let aftervalue = Number(aftervalue_string?.split(':')[1].trim())
 
         return ((beforevalue !== aftervalue) && (beforevalue - aftervalue <= 11)) ? true : false
+    }
+    async SelectType_DropDownItemByText(locator: Locator, dropdownvalue: string) {
+        await this.page.waitForLoadState();
+        let value = await locator.selectOption(dropdownvalue);
+        if (value) {
+            return true;
+        } else {
+            console.error(`Select Drop down ${dropdownvalue} does not find.`);
+            return false;
+        }
     }
 }
 

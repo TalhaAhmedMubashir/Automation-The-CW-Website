@@ -316,13 +316,20 @@ test.describe('CW Show Tests', () => {
             console.error("Player Episode is not running...")
         }
     })
-    test("TEST-545 Sub-Test - 12 : Test report issue.", async ({ page }) => {
+    test("TEST-545 Sub-Test - 11 & 12 : Test report issue and share functionality.", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
         await page.waitForLoadState();
 
-        expect(await videoplayer.clickOnLinkAndMathchUrl(), "playback issue link is not working.").toBeTruthy()
+        expect.soft(await videoplayer.clickOnLinkAndMathchUrl(), "playback issue link is not working.").toBeTruthy()
+        if (await videoplayer.isEpisodePlaying()) {
+            expect.soft(await videoplayer.isVideoShareWorking('Twitter'), "Twitter link is not working.").toBeTruthy()
+            expect.soft(await videoplayer.isVideoShareWorking('Facebook'), "Facebook link is not working.").toBeTruthy()
+            expect.soft(await videoplayer.isVideoShareWorking('Pinterest'), "Pinterest link is not working.").toBeTruthy()
+        } else {
+            console.log("Episode is not playing.")
+        }
     })
 
     test("TEST-545 Sub-Test - 13 : Test wide screen functionality.", async ({ page }) => {
@@ -350,5 +357,37 @@ test.describe('CW Show Tests', () => {
         } else {
             console.log("Episode is not playing.")
         }
+    })
+    test.only("TEST-545 : Test Cogwheel", async ({ page }) => {
+        test.slow()
+        videoplayer = new VideoPlayer(page)
+        await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
+        await page.waitForLoadState();
+        await test.step("Test 16 : Verify submenu appear and allow user to change resolution", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isResolutionChangeWorking(), "Resolution change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
+
+        await test.step("Test 17 : Verify submenu appear and click the CC and verify that the user can turn the closed captions on/off", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isCCApplied(), "CC change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
+
+        await test.step("Test 18 : verify that you are able to change how big and visible the closed captions will be", async () => {
+            if (await videoplayer.isEpisodePlaying()) {
+                await page.waitForTimeout(3000)
+                expect.soft(await videoplayer.isCCTextSizeChange(), "CC text size change is not working").toBeTruthy()
+            } else {
+                console.log("Episode is not playing.")
+            }
+        })
     })
 });
