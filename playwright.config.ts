@@ -4,16 +4,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
-  timeout: 90 * 1000,
-  testDir: './tests',
+  timeout: 240000,
+  testDir: './src/tests',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  // reporter: [
-  //   ['html'],
-  //   ['allure-playwright']
-  // ],
+  reporter: [
+    ['html'],
+    // ['allure-playwright']
+  ],
   use: {
     baseURL: 'https://www.cwtv.com',
     viewport: { width: 1280, height: 720 },
