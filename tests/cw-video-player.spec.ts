@@ -358,7 +358,7 @@ test.describe('CW Show Tests', () => {
             console.log("Episode is not playing.")
         }
     })
-    test.only("TEST-545 : Test Cogwheel", async ({ page }) => {
+    test("TEST-545 : Test Cogwheel", async ({ page }) => {
         test.slow()
         videoplayer = new VideoPlayer(page)
         await page.goto('https://www.cwtv.com/series/and-never-let-her-go/?viewContext=Home+Swimlane')
