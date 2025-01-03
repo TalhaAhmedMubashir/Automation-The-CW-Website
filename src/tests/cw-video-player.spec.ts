@@ -260,7 +260,7 @@ test.describe('TEST-545', () => {
           )
           .toBeTruthy();
       } else {
-        console.log('Avertisement is not running..');
+        console.log('Avertisement is not running.');
       }
     });
   });
@@ -272,7 +272,7 @@ test.describe('TEST-545', () => {
 
     await page.waitForLoadState();
 
-    expect.soft(await videoplayer.isAdvertisementDisplaying()).toBeTruthy();
+    expect.soft(await videoplayer.isEpisodePlaying()).toBeTruthy();
   });
 
   test('TEST-545 Sub-Test - 5 : Controls are visible during video', async ({
