@@ -211,14 +211,9 @@ test.describe('TEST-545', () => {
 
   test('TEST-545 : CW Video Player Functionalities', async ({ page }) => {
     test.slow();
-    videoplayer = new VideoPlayer(page);
 
     await test.step('Test - 3 A :  CW Logo is visible', async () => {
       expect.soft(await videoplayer.isCWSplash()).toBeTruthy();
-    });
-
-    await test.step('Test - 3 B : Advertisement is visible', async () => {
-      expect.soft(await videoplayer.isAdvertisementDisplaying()).toBeTruthy();
     });
 
     await test.step('Test - 4 :  Controls are visible during pre-roll', async () => {
@@ -269,7 +264,17 @@ test.describe('TEST-545', () => {
       }
     });
   });
-  
+
+  test('TEST-545 Sub-Test - 3B : Advertisement is visible', async ({
+    page,
+  }) => {
+    test.slow();
+
+    await page.waitForLoadState();
+
+    expect.soft(await videoplayer.isAdvertisementDisplaying()).toBeTruthy();
+  });
+
   test('TEST-545 Sub-Test - 5 : Controls are visible during video', async ({
     page,
   }) => {
