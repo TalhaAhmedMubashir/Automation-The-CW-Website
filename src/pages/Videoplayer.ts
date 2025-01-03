@@ -348,7 +348,6 @@ export class VideoPlayer extends BasePage {
                             break
                         }
                     }
-                    console.log("Is Playing add : ", isAdPlaying)
                     return isAdPlaying;
                 } else {
                     return false;
@@ -402,7 +401,6 @@ export class VideoPlayer extends BasePage {
                             break
                         }
                     }
-                    console.log("Is Episode playing : ", isEpisodeplay)
                     return isEpisodeplay
                 } else {
                     return false;
