@@ -368,7 +368,7 @@ export class VideoPlayer extends BasePage {
             if (await this.isPlayerReadyToPlay()) {
                 if (await this.isVideoPlaying()) {
                     const totalTime = await this.totalvideotime?.textContent()
-                    return ((Number(totalTime?.split(':')[0].trim()) > 0 ? true : false) || (Number(totalTime?.split(':')[1].trim()) < 6 ? true : false))
+                    return (totalTime?.split(':')[1].trim().includes('05') ? true : false)
                 } else {
                     return false;
                 }
