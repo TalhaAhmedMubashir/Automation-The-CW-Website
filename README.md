@@ -164,11 +164,3 @@ cw-e2e-tests/
 
 ---
 
-Let me know if you'd like to include screenshots, GitHub Actions CI instructions, or test coverage tips!
-
-```
-
----
-
-Would you like me to export this as a file (`README.md`) as well?
-```
